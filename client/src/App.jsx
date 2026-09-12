@@ -7,6 +7,7 @@ import GamePage from "./pages/GamePage";
 
 import FutureSelfReveal from "./components/future/FutureSelfReveal";
 import FutureSelfScene from "./components/future/FutureSelfScene";
+import FutureSelfChat from "./components/future/FutureSelfChat";
 
 import {
   createInitialMockGameState,
@@ -63,7 +64,11 @@ function buildFutureSelfPreview(gameState, playerProfile) {
         : "Focused and evolving";
 
   const personality = {
-    confidence: Math.max(0, Math.min(1, stats.career / 100)),
+    confidence: Math.max(
+      0,
+      Math.min(1, stats.career / 100),
+    ),
+
     riskTolerance: Math.max(
       0,
       Math.min(
@@ -71,9 +76,13 @@ function buildFutureSelfPreview(gameState, playerProfile) {
         (stats.career + stats.creativity - stats.stress) / 200,
       ),
     ),
+
     discipline: Math.max(
       0,
-      Math.min(1, (stats.knowledge + stats.career) / 200),
+      Math.min(
+        1,
+        (stats.knowledge + stats.career) / 200,
+      ),
     ),
   };
 
@@ -91,10 +100,14 @@ function buildFutureSelfPreview(gameState, playerProfile) {
     relationships,
 
     skills: [
-      stats.knowledge >= 60 ? "Deep knowledge" : "Growing knowledge",
+      stats.knowledge >= 60
+        ? "Deep knowledge"
+        : "Growing knowledge",
+
       stats.creativity >= 60
         ? "Creative thinking"
         : "Structured thinking",
+
       stats.career >= 60
         ? "Career leadership"
         : "Career development",
@@ -126,10 +139,9 @@ function buildFutureSelfPreview(gameState, playerProfile) {
 
     majorDecisions,
 
-    trajectorySummary:
-      playerProfile?.summary
-        ? `A future shaped by the goal: "${playerProfile.summary}". Your decisions created a trajectory toward ${career.toLowerCase()} while balancing money, relationships, knowledge, energy, and stress.`
-        : `Your decisions created a trajectory toward ${career.toLowerCase()} while balancing money, relationships, knowledge, energy, and stress.`,
+    trajectorySummary: playerProfile?.summary
+      ? `A future shaped by the goal: "${playerProfile.summary}". Your decisions created a trajectory toward ${career.toLowerCase()} while balancing money, relationships, knowledge, energy, and stress.`
+      : `Your decisions created a trajectory toward ${career.toLowerCase()} while balancing money, relationships, knowledge, energy, and stress.`,
 
     futureVoice: {
       tone: "reflective",
@@ -157,6 +169,9 @@ function App() {
 
   const [futureSelf, setFutureSelf] = useState(null);
 
+  const [futureSelfMode, setFutureSelfMode] =
+    useState("reveal");
+
   const currentScenario = useMemo(
     () =>
       MOCK_SCENARIOS[
@@ -183,6 +198,7 @@ function App() {
     setSelectedChoice(null);
     setConsequence(null);
     setFutureSelf(null);
+    setFutureSelfMode("reveal");
 
     setScreen(SCREENS.GAME);
   };
@@ -209,11 +225,13 @@ function App() {
       scenarioIndex >= MOCK_SCENARIOS.length - 1;
 
     if (isLastScenario) {
-      const generatedFutureSelf = buildFutureSelfPreview(
-        gameState,
-        playerProfile,
-      );
+      const generatedFutureSelf =
+        buildFutureSelfPreview(
+          gameState,
+          playerProfile,
+        );
 
+      setFutureSelfMode("reveal");
       setFutureSelf(generatedFutureSelf);
       setScreen(SCREENS.FUTURE);
 
@@ -221,6 +239,37 @@ function App() {
     }
 
     setScenarioIndex((index) => index + 1);
+  };
+
+  /**
+   * Temporary local Future Self responder.
+   *
+   * This is only for testing the conversation UI.
+   * It will later be replaced by the real backend
+   * Future Self AI reasoning service.
+   */
+  const handleFutureSelfAsk = async (question) => {
+    const normalized = question.toLowerCase();
+
+    if (normalized.includes("worth")) {
+      return "Yes — but not because every decision was perfect. This future came from the choices you actually made. The important question is whether the trade-offs were worth the life they created.";
+    }
+
+    if (normalized.includes("decision")) {
+      const decisions = gameState.decisions
+        .map((decision) => decision.title)
+        .join(", ");
+
+      return decisions
+        ? `The decisions that shaped this trajectory were: ${decisions}. Each one contributed to the direction you see now.`
+        : "Your decision history is still too limited for me to identify a defining turning point.";
+    }
+
+    if (normalized.includes("different")) {
+      return "I would reconsider the choices that created the biggest trade-offs between career, relationships, energy, and stress. A different choice could create a different trajectory.";
+    }
+
+    return `I remember the trajectory created by your decisions. You asked: "${question}" My answer should ultimately come from the actual history, consequences, and memories of this simulation.`;
   };
 
   const restart = () => {
@@ -231,6 +280,7 @@ function App() {
     setSelectedChoice(null);
     setConsequence(null);
     setFutureSelf(null);
+    setFutureSelfMode("reveal");
 
     setScreen(SCREENS.INTRO);
   };
@@ -305,7 +355,14 @@ function App() {
               <main className="min-h-screen">
                 <FutureSelfReveal
                   futureSelf={futureSelf}
-                  onComplete={() => {}}
+                  onTalk={() =>
+                    setFutureSelfMode("chat")
+                  }
+                  onWhatIf={() => {
+                    console.log(
+                      "Future Self What-If coming next",
+                    );
+                  }}
                 />
 
                 <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
@@ -314,7 +371,8 @@ function App() {
                       position: "relative",
                       overflow: "hidden",
                       borderRadius: "24px",
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      border:
+                        "1px solid rgba(255,255,255,0.08)",
                       background: "#02040a",
                     }}
                   >
@@ -324,6 +382,13 @@ function App() {
                     />
                   </div>
                 </div>
+
+                {futureSelfMode === "chat" && (
+                  <FutureSelfChat
+                    futureSelf={futureSelf}
+                    onAsk={handleFutureSelfAsk}
+                  />
+                )}
               </main>
             </motion.div>
           )}
