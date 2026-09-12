@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 export default function VoiceInput({ onTranscript }) {
   const [status, setStatus] = useState("IDLE");
-  const [text, setText] = useState("");
+  const [transcript, setTranscript] = useState("");
   const [error, setError] = useState("");
+  const [typedText, setTypedText] = useState("");
 
   const recognitionRef = useRef(null);
 
@@ -25,39 +26,40 @@ export default function VoiceInput({ onTranscript }) {
     recognition.onstart = () => {
       setStatus("LISTENING");
       setError("");
+      setTranscript("");
     };
 
     recognition.onresult = (event) => {
-      let result = "";
+      let text = "";
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        result += event.results[i][0].transcript;
+        text += event.results[i][0].transcript;
       }
 
-      setText(result);
+      setTranscript(text);
 
-      if (event.results[event.results.length - 1].isFinal) {
-        const finalText = result.trim();
+      const lastResult = event.results[event.results.length - 1];
 
-        if (finalText) {
-          setStatus("READY");
+      if (lastResult?.isFinal && text.trim()) {
+        setStatus("READY");
+        setTranscript(text.trim());
 
-          if (onTranscript) {
-            onTranscript(finalText);
-          }
+        if (onTranscript) {
+          onTranscript(text.trim());
         }
       }
     };
 
     recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-
       setStatus("IDLE");
 
-      if (event.error === "not-allowed" || event.error === "permission-denied") {
-        setError("Microphone permission denied. You can type instead.");
-      } else {
+      if (
+        event.error === "not-allowed" ||
+        event.error === "service-not-allowed"
+      ) {
         setError("Voice unavailable. You can type instead.");
+      } else {
+        setError("Voice input failed. You can type instead.");
       }
     };
 
@@ -75,143 +77,159 @@ export default function VoiceInput({ onTranscript }) {
   }, [onTranscript]);
 
   const startListening = () => {
-    setError("");
-    setText("");
-
     if (!recognitionRef.current) {
       setError("Voice unavailable. You can type instead.");
       return;
     }
 
+    setError("");
+    setTranscript("");
+    setStatus("PROCESSING");
+
     try {
-      setStatus("LISTENING");
       recognitionRef.current.start();
-    } catch (err) {
-      console.error(err);
-      setError("Voice unavailable. You can type instead.");
+    } catch {
       setStatus("IDLE");
+      setError("Microphone is already active.");
     }
   };
 
   const stopListening = () => {
     recognitionRef.current?.stop();
-    setStatus("READY");
+    setStatus("TRANSCRIBING");
   };
 
-  const submitText = () => {
-    const value = text.trim();
+  const submitTypedText = () => {
+    const text = typedText.trim();
 
-    if (!value) {
-      setError("Please speak or type your answer.");
+    if (!text) {
+      setError("Please speak or type an answer.");
       return;
     }
 
     setError("");
+    setTranscript(text);
     setStatus("READY");
 
     if (onTranscript) {
-      onTranscript(value);
+      onTranscript(text);
     }
+
+    setTypedText("");
   };
+
+  const isListening = status === "LISTENING";
 
   return (
     <div
       style={{
         width: "100%",
         maxWidth: "620px",
-        margin: "30px auto",
-        padding: "24px",
-        borderRadius: "18px",
-        background: "#f5f7fb",
-        boxSizing: "border-box",
+        margin: "0 auto",
+        textAlign: "center",
       }}
     >
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "20px",
+          marginBottom: "18px",
+          fontWeight: "600",
+          letterSpacing: "0.04em",
         }}
       >
-        <strong>Voice Input</strong>
+        Voice Input
+      </div>
 
-        <span>
-          {status === "LISTENING" ? "🎙️ Listening..." : status}
-        </span>
+      <div
+        style={{
+          marginBottom: "18px",
+          opacity: 0.8,
+        }}
+      >
+        Status: {status}
       </div>
 
       <button
         type="button"
-        onClick={status === "LISTENING" ? stopListening : startListening}
+        onClick={isListening ? stopListening : startListening}
         style={{
-          display: "block",
-          margin: "0 auto 20px",
-          width: "120px",
-          height: "120px",
+          width: "130px",
+          height: "130px",
           borderRadius: "50%",
           border: "none",
           cursor: "pointer",
-          background: status === "LISTENING" ? "#dc2626" : "#2563eb",
-          color: "white",
           fontSize: "18px",
-          fontWeight: "bold",
+          fontWeight: "600",
+          background: isListening ? "#ef4444" : "#2563eb",
+          color: "white",
+          boxShadow: isListening
+            ? "0 0 0 12px rgba(239,68,68,0.15)"
+            : "0 8px 30px rgba(37,99,235,0.25)",
+          transition: "all 0.2s ease",
         }}
       >
-        {status === "LISTENING" ? "🛑 Stop" : "🎤 Speak"}
+        {isListening ? "🎙 Stop" : "🎤 Speak"}
       </button>
 
-      {status === "LISTENING" && (
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "15px",
-          }}
-        >
-          🔊 Listening — speak now...
+      {isListening && (
+        <div style={{ marginTop: "18px", opacity: 0.8 }}>
+          Listening... speak your answer
         </div>
       )}
 
       <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Speak or type your answer..."
-        rows={4}
+        value={transcript}
+        onChange={(e) => setTranscript(e.target.value)}
+        placeholder="Your voice transcript will appear here..."
+        rows={3}
         style={{
           width: "100%",
-          padding: "15px",
+          marginTop: "24px",
+          padding: "14px",
           borderRadius: "12px",
-          border: "1px solid #ccc",
-          boxSizing: "border-box",
+          border: "1px solid rgba(128,128,128,0.35)",
           resize: "vertical",
-          fontSize: "16px",
+          boxSizing: "border-box",
         }}
       />
 
-      <button
-        type="button"
-        onClick={submitText}
-        style={{
-          display: "block",
-          margin: "15px auto 0",
-          padding: "10px 22px",
-          borderRadius: "10px",
-          border: "none",
-          background: "#111827",
-          color: "white",
-          cursor: "pointer",
-        }}
-      >
-        Submit Answer
-      </button>
+      <div style={{ marginTop: "14px" }}>
+        <textarea
+          value={typedText}
+          onChange={(e) => setTypedText(e.target.value)}
+          placeholder="Speak OR type your answer..."
+          rows={3}
+          style={{
+            width: "100%",
+            padding: "14px",
+            borderRadius: "12px",
+            border: "1px solid rgba(128,128,128,0.35)",
+            resize: "vertical",
+            boxSizing: "border-box",
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={submitTypedText}
+          style={{
+            marginTop: "10px",
+            padding: "10px 22px",
+            borderRadius: "10px",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "600",
+          }}
+        >
+          Submit Answer
+        </button>
+      </div>
 
       {error && (
         <p
           role="alert"
           style={{
+            marginTop: "16px",
             color: "#dc2626",
-            textAlign: "center",
-            marginTop: "15px",
           }}
         >
           {error}
