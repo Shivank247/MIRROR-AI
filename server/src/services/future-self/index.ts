@@ -19,3 +19,8 @@ export {
   isValidFutureSelf,
   validateFutureSelf,
 } from "./futureSelfValidator";
+
+export {
+  FUTURE_SELF_REASONING_INSTRUCTIONS,
+  buildFutureSelfReasoningPrompt,
+} from "./futureSelfPrompt";
