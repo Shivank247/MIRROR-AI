@@ -1,110 +1,93 @@
-import dotenv from "dotenv";
 import { interpretDecision } from "./decisionService.js";
 
-dotenv.config();
-
-const playerProfile = {
+const profile = {
   goals: [
-    "Build a successful career",
-    "Become financially independent",
+    "Achieve financial independence",
+    "Build a successful startup",
   ],
-
   priorities: [
-    "Career growth",
-    "Financial independence",
     "Family",
+    "Financial independence",
   ],
-
   interests: [
-    "AI",
     "Technology",
-    "Fitness",
+    "AI",
   ],
-
   aspirations: [
-    "Build my own startup",
+    "Become an entrepreneur",
   ],
-
-  riskTolerance: "moderate",
-
+  riskTolerance: "high",
   summary:
-    "A technology-oriented player focused on career growth and financial independence while maintaining important personal priorities.",
+    "The player values family and financial independence and wants to build a technology startup.",
 };
 
 const scenario = {
-  title: "The Startup Opportunity",
-
-  situation:
-    "You receive an opportunity to join an early-stage AI startup. " +
-    "The role offers strong learning and growth potential but comes with " +
-    "less financial security than a stable job.",
-
+  id: "scenario_family_startup",
+  title: "The Family Commitment",
+  description:
+    "Your startup is entering an important stage, but your family needs your presence for an important event.",
   context:
-    "You want career growth and financial independence, but you also value " +
-    "stability and your personal responsibilities.",
-
+    "You must decide how to balance your startup ambitions with your family priorities.",
   choices: [
     {
+      id: "family",
+      text: "Take time away from the startup to support your family.",
+      effects: {
+        relationships: 8,
+        career: -3,
+        energy: -2,
+      },
+      timeAdvance: 1,
+    },
+    {
       id: "startup",
-      text: "Join the AI startup and accept the financial uncertainty.",
-    },
-    {
-      id: "stable-job",
-      text: "Choose a stable job and avoid the additional financial risk.",
-    },
-    {
-      id: "delay",
-      text: "Delay the decision and investigate the startup opportunity further.",
+      text: "Stay focused on the startup and miss the family event.",
+      effects: {
+        career: 8,
+        relationships: -7,
+        stress: 4,
+      },
+      timeAdvance: 1,
     },
   ],
+  timeAdvance: 1,
 };
 
-const selectedChoice = {
-  id: "startup",
-  text: "Join the AI startup and accept the financial uncertainty.",
-};
-
-const decision =
-  "I would take the startup opportunity, but only after checking " +
-  "whether I can manage the financial risk and personal responsibilities.";
+const selectedChoice = scenario.choices[0];
 
 const gameState = {
-  career: 50,
-  finances: 50,
-  relationships: 50,
-  health: 50,
-  stress: 30,
+  age: 20,
+  year: 1,
+  stats: {
+    career: 50,
+    money: 50,
+    relationships: 50,
+    knowledge: 50,
+    creativity: 50,
+    energy: 70,
+    stress: 20,
+  },
+  xp: 0,
+  decisions: [],
+  timeline: [],
+  memories: [],
 };
 
-console.log("\n======================================");
-console.log("       MIRROR//AI DECISION TEST");
-console.log("======================================\n");
-
 try {
-  console.log("Sending decision to AI...\n");
-
-  const result = await interpretDecision({
-    profile: playerProfile,
+  const interpretation = await interpretDecision({
+    profile,
     scenario,
     selectedChoice,
-    decision,
     gameState,
+    decisionHistory: [],
+    memories: [],
   });
 
-  console.log("✅ DECISION AI WORKING\n");
-  console.log(JSON.stringify(result, null, 2));
-
-  console.log("\n======================================");
-  console.log("           TEST PASSED");
-  console.log("======================================\n");
+  console.log("\n===== MIRROR//AI DECISION INTERPRETATION =====\n");
+  console.log(JSON.stringify(interpretation, null, 2));
+  console.log("\n==============================================\n");
 } catch (error) {
-  console.error("\n❌ DECISION TEST FAILED\n");
-  console.error(error?.message || error);
-
-  if (error?.stack) {
-    console.error("\nStack:");
-    console.error(error.stack);
-  }
-
+  console.error("\n❌ Decision interpretation failed:");
+  console.error(error.message);
   process.exitCode = 1;
 }
