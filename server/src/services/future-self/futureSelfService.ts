@@ -11,8 +11,8 @@
  * - own the AI provider
  * - own the Memory system
  *
- * It prepares Future Self input and delegates reasoning
- * to an injected AI function.
+ * It prepares Future Self input, delegates reasoning to an
+ * injected AI function, and validates the resulting structure.
  */
 
 import type {
@@ -25,12 +25,20 @@ import {
   type FutureSelfContextSource,
 } from "./futureSelfContext";
 
+import { validateFutureSelf } from "./futureSelfValidator";
+
 export type FutureSelfReasoner = (
   input: FutureSelfInput,
 ) => Promise<FutureSelf>;
 
-export interface GenerateFutureSelfSource extends FutureSelfContextSource {}
+export interface GenerateFutureSelfSource
+  extends FutureSelfContextSource {}
 
+/**
+ * Coordinates Future Self generation.
+ *
+ * The authoritative game state is treated as read-only.
+ */
 export class FutureSelfService {
   private readonly reasoner: FutureSelfReasoner;
 
@@ -39,15 +47,17 @@ export class FutureSelfService {
   }
 
   /**
-   * Generate a simulated Future Self from gameplay history.
-   *
-   * The authoritative game state is treated as read-only.
+   * Generate and validate a simulated Future Self.
    */
   async generate(
     source: GenerateFutureSelfSource,
   ): Promise<FutureSelf> {
     const context = buildFutureSelfContext(source);
 
-    return this.reasoner(context);
+    const result = await this.reasoner(context);
+
+    validateFutureSelf(result);
+
+    return result;
   }
 }
