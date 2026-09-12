@@ -11,3 +11,11 @@ export {
 export {
   applyDecisionConsequences,
 } from "./consequence.service";
+
+export {
+  advanceTime,
+} from "./time.service";
+
+export {
+  determineTrajectory,
+} from "./butterfly.service";

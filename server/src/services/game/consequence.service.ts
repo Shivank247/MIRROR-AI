@@ -4,6 +4,7 @@ import type {
 } from "../../../../shared/types/game";
 import type { GameScenario } from "../../../../shared/types/ai";
 import { processDecision } from "./decision.service";
+import { advanceTime } from "./time.service";
 
 export interface ApplyConsequenceInput {
   gameState: GameState;
@@ -49,16 +50,31 @@ export function applyDecisionConsequences({
   const decision =
     updatedState.decisions[updatedState.decisions.length - 1];
 
+  const choice = scenario.choices.find(
+    (item) => item.id === choiceId,
+  );
+
+  if (!choice) {
+    throw new Error(
+      `Invalid decision: choice "${choiceId}" does not exist.`,
+    );
+  }
+
+  const timeResult = advanceTime(
+    updatedState,
+    choice.timeAdvance,
+  );
+
   const timelineEvent = createTimelineEvent(
     scenario,
     choiceId,
-    updatedState,
+    timeResult.gameState,
     decision.id,
     now,
   );
 
   return {
-    ...updatedState,
-    timeline: [...updatedState.timeline, timelineEvent],
+    ...timeResult.gameState,
+    timeline: [...timeResult.gameState.timeline, timelineEvent],
   };
 }
