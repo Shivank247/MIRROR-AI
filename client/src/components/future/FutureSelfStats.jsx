@@ -24,6 +24,14 @@ function FutureSelfStats({ futureSelf }) {
     },
   ];
 
+  const normalizeStat = (value) => {
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(100, value));
+  };
+
   return (
     <section className="future-self-stats">
       <div className="future-self-card">
@@ -55,30 +63,35 @@ function FutureSelfStats({ futureSelf }) {
         <p className="future-self-label">PERSONALITY</p>
 
         <div className="future-self-stat-list">
-          {stats.map((stat) => (
-            <div key={stat.label} className="future-self-stat">
-              <div className="future-self-stat-header">
-                <span>{stat.label}</span>
-                <strong>
-                  {typeof stat.value === "number"
-                    ? Math.round(stat.value * 100)
-                    : "—"}
-                </strong>
-              </div>
+          {stats.map((stat) => {
+            const value = normalizeStat(stat.value);
 
-              <div className="future-self-stat-bar">
-                <div
-                  className="future-self-stat-fill"
-                  style={{
-                    width:
-                      typeof stat.value === "number"
-                        ? `${Math.max(0, Math.min(1, stat.value)) * 100}%`
-                        : "0%",
-                  }}
-                />
+            return (
+              <div
+                key={stat.label}
+                className="future-self-stat"
+              >
+                <div className="future-self-stat-header">
+                  <span>{stat.label}</span>
+
+                  <strong>
+                    {typeof stat.value === "number"
+                      ? `${Math.round(value)}%`
+                      : "—"}
+                  </strong>
+                </div>
+
+                <div className="future-self-stat-bar">
+                  <div
+                    className="future-self-stat-fill"
+                    style={{
+                      width: `${value}%`,
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -87,9 +100,13 @@ function FutureSelfStats({ futureSelf }) {
 
         {futureSelf.majorDecisions?.length ? (
           <ul>
-            {futureSelf.majorDecisions.map((decision, index) => (
-              <li key={`${decision}-${index}`}>{decision}</li>
-            ))}
+            {futureSelf.majorDecisions.map(
+              (decision, index) => (
+                <li key={`${decision}-${index}`}>
+                  {decision}
+                </li>
+              ),
+            )}
           </ul>
         ) : (
           <p>No major decisions recorded.</p>
@@ -101,9 +118,13 @@ function FutureSelfStats({ futureSelf }) {
 
         {futureSelf.achievements?.length ? (
           <ul>
-            {futureSelf.achievements.map((achievement, index) => (
-              <li key={`${achievement}-${index}`}>{achievement}</li>
-            ))}
+            {futureSelf.achievements.map(
+              (achievement, index) => (
+                <li key={`${achievement}-${index}`}>
+                  {achievement}
+                </li>
+              ),
+            )}
           </ul>
         ) : (
           <p>No achievements recorded.</p>
@@ -116,7 +137,9 @@ function FutureSelfStats({ futureSelf }) {
         {futureSelf.regrets?.length ? (
           <ul>
             {futureSelf.regrets.map((regret, index) => (
-              <li key={`${regret}-${index}`}>{regret}</li>
+              <li key={`${regret}-${index}`}>
+                {regret}
+              </li>
             ))}
           </ul>
         ) : (
