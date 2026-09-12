@@ -35,7 +35,7 @@ function FutureSelfStats({ futureSelf }) {
   return (
     <section className="future-self-stats">
       <div className="future-self-card">
-        <p className="future-self-label">FUTURE SELF</p>
+        <p className="future-self-label">SIMULATED FUTURE SELF</p>
 
         <h2>{futureSelf.career}</h2>
 
@@ -136,11 +136,13 @@ function FutureSelfStats({ futureSelf }) {
 
         {futureSelf.regrets?.length ? (
           <ul>
-            {futureSelf.regrets.map((regret, index) => (
-              <li key={`${regret}-${index}`}>
-                {regret}
-              </li>
-            ))}
+            {futureSelf.regrets.map(
+              (regret, index) => (
+                <li key={`${regret}-${index}`}>
+                  {regret}
+                </li>
+              ),
+            )}
           </ul>
         ) : (
           <p>No regrets recorded.</p>
