@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from "express";
 
 import futureSelfRoutes from "./routes/futureSelf.routes";
+import aiRoutes from "./routes/ai.routes";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.get("/health", (_req: Request, res: Response) => {
   });
 });
 
+app.use("/api/ai", aiRoutes);
 app.use("/api/future-self", futureSelfRoutes);
 
 app.listen(PORT, () => {
