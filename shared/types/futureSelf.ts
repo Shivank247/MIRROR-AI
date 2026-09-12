@@ -9,12 +9,21 @@
  * It must never directly mutate the authoritative Game State.
  */
 
+import type {
+  GameDecision,
+  GameMemoryReference,
+  GameState,
+  TimelineEvent,
+} from "./game";
+
+import type { PlayerProfile } from "./ai";
+
 export interface FutureSelfInput {
-  profile: unknown;
-  gameState: unknown;
-  decisionHistory: unknown[];
-  memories: unknown[];
-  timeline: unknown[];
+  profile: PlayerProfile;
+  gameState: GameState;
+  decisionHistory: GameDecision[];
+  memories: GameMemoryReference[];
+  timeline: TimelineEvent[];
   trajectory: string;
 }
 
@@ -94,7 +103,7 @@ export interface FutureSelfChatResponse {
  * The alternative choice must be simulated separately.
  */
 export interface CounterfactualRequest {
-  originalState: unknown;
+  originalState: GameState;
 
   originalDecisionId: string;
 
