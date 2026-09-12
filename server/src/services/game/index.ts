@@ -19,3 +19,7 @@ export {
 export {
   determineTrajectory,
 } from "./butterfly.service";
+
+export {
+  buildAIContext,
+} from "./memory-context.service";
