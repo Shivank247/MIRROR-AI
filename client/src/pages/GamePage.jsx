@@ -6,6 +6,7 @@ import ConsequencePanel from "../components/game/ConsequencePanel";
 import Timeline from "../components/timeline/Timeline";
 import LoadingState from "../components/ui/LoadingState";
 import ErrorState from "../components/ui/ErrorState";
+import DecisionHistory from "../components/game/DecisionHistory";
 
 export default function GamePage({
   profile,
@@ -133,9 +134,12 @@ export default function GamePage({
               )}
             </div>
 
-            <aside>
+            <aside className="space-y-6">
               <Timeline events={gameState.timeline} />
+
+              <DecisionHistory decisions={gameState.decisions} />
             </aside>
+
           </div>
         </div>
       </div>
