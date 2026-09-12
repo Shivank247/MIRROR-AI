@@ -4,6 +4,8 @@ import ScenarioCard from "../components/game/ScenarioCard";
 import ChoiceCard from "../components/game/ChoiceCard";
 import ConsequencePanel from "../components/game/ConsequencePanel";
 import Timeline from "../components/timeline/Timeline";
+import LoadingState from "../components/ui/LoadingState";
+import ErrorState from "../components/ui/ErrorState";
 
 export default function GamePage({
   profile,
@@ -12,11 +14,14 @@ export default function GamePage({
   scenarioIndex,
   selectedChoice,
   consequence,
+  isProcessing,
+  error,
   onChoice,
   onContinue,
   onRestart,
 }) {
   const totalScenarios = 3;
+
   const progress = Math.min(
     100,
     ((scenarioIndex + (consequence ? 1 : 0)) / totalScenarios) * 100,
@@ -25,7 +30,6 @@ export default function GamePage({
   return (
     <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-
         {/* GAME HEADER */}
         <header className="mb-7">
           <div className="flex items-center justify-between gap-4">
@@ -53,8 +57,13 @@ export default function GamePage({
           <div className="mt-6">
             <div className="mb-2 flex items-center justify-between text-[10px] font-semibold tracking-[0.18em] text-white/30 uppercase">
               <span>Life Simulation</span>
+
               <span>
-                Chapter {String(Math.min(scenarioIndex + 1, totalScenarios)).padStart(2, "0")} / {String(totalScenarios).padStart(2, "0")}
+                Chapter{" "}
+                {String(
+                  Math.min(scenarioIndex + 1, totalScenarios),
+                ).padStart(2, "0")}{" "}
+                / {String(totalScenarios).padStart(2, "0")}
               </span>
             </div>
 
@@ -72,15 +81,27 @@ export default function GamePage({
 
           <div className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
             <div className="space-y-6">
-
               <ScenarioCard
                 scenario={scenario}
                 gameState={gameState}
               />
 
-              {!consequence ? (
+              {/* DECISION / LOADING / ERROR / CONSEQUENCE */}
+              {error ? (
+                <ErrorState
+                  title="Decision failed"
+                  message={error}
+                  onRetry={() => {
+                    window.location.reload();
+                  }}
+                />
+              ) : isProcessing ? (
+                <LoadingState
+                  title="Applying your decision..."
+                  description="The simulation is calculating how your choice changes this path."
+                />
+              ) : !consequence ? (
                 <section className="space-y-3">
-
                   <div className="px-1">
                     <p className="text-xs font-semibold tracking-[0.2em] text-white/30 uppercase">
                       What do you do?
@@ -96,7 +117,9 @@ export default function GamePage({
                       key={choice.id}
                       choice={choice}
                       index={index}
-                      disabled={Boolean(selectedChoice)}
+                      disabled={
+                        Boolean(selectedChoice) || isProcessing
+                      }
                       selected={selectedChoice === choice.id}
                       onClick={() => onChoice(choice)}
                     />
@@ -108,7 +131,6 @@ export default function GamePage({
                   onContinue={onContinue}
                 />
               )}
-
             </div>
 
             <aside>

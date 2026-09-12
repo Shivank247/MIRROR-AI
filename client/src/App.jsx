@@ -23,6 +23,8 @@ function App() {
   const [scenarioIndex, setScenarioIndex] = useState(0);
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [consequence, setConsequence] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
 
   const currentScenario = useMemo(
     () => MOCK_SCENARIOS[scenarioIndex % MOCK_SCENARIOS.length],
@@ -46,26 +48,42 @@ function App() {
     setScenarioIndex(0);
     setSelectedChoice(null);
     setConsequence(null);
+    setError(null);
+    setIsProcessing(false);
     setScreen(SCREENS.GAME);
   };
 
   const handleChoice = (choice) => {
-    if (selectedChoice || consequence) return;
+    if (selectedChoice || consequence || isProcessing) return;
 
-    const result = applyMockDecision(
-      gameState,
-      currentScenario,
-      choice.id,
-    );
+    setIsProcessing(true);
+    setError(null);
 
-    setSelectedChoice(choice.id);
-    setGameState(result.gameState);
-    setConsequence(result);
+    try {
+      const result = applyMockDecision(
+        gameState,
+        currentScenario,
+        choice.id,
+      );
+
+      setSelectedChoice(choice.id);
+      setGameState(result.gameState);
+      setConsequence(result);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "The simulation could not process your decision.",
+      );
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const continueGame = () => {
     setSelectedChoice(null);
     setConsequence(null);
+    setError(null);
     setScenarioIndex((index) => index + 1);
   };
 
@@ -76,6 +94,8 @@ function App() {
     setScenarioIndex(0);
     setSelectedChoice(null);
     setConsequence(null);
+    setError(null);
+    setIsProcessing(false);
     setScreen(SCREENS.INTRO);
   };
 
@@ -129,6 +149,8 @@ function App() {
                 scenarioIndex={scenarioIndex}
                 selectedChoice={selectedChoice}
                 consequence={consequence}
+                isProcessing={isProcessing}
+                error={error}
                 onChoice={handleChoice}
                 onContinue={continueGame}
                 onRestart={restart}
