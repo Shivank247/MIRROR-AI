@@ -14,3 +14,8 @@ export type {
   FutureSelfReasoner,
   GenerateFutureSelfSource,
 } from "./futureSelfService";
+
+export {
+  isValidFutureSelf,
+  validateFutureSelf,
+} from "./futureSelfValidator";
