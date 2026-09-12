@@ -1,0 +1,82 @@
+{
+  "test-player-001": [
+    {
+      "id": "1789234427079-0qm644rn",
+      "type": "value",
+      "content": "Family is important to the player.",
+      "source": "player",
+      "importance": "high",
+      "metadata": {},
+      "createdAt": "2026-09-12T17:33:47.079Z"
+    },
+    {
+      "id": "1789234427081-4bdhkqpo",
+      "type": "priority",
+      "content": "Career growth and financial independence.",
+      "source": "player",
+      "importance": "high",
+      "metadata": {},
+      "createdAt": "2026-09-12T17:33:47.081Z"
+    },
+    {
+      "id": "1789234427082-ytafqyiu",
+      "type": "decision",
+      "content": "The player chose the AI startup opportunity over the stable job.",
+      "source": "decision-ai",
+      "importance": "high",
+      "metadata": {
+        "scenario": "The Startup Opportunity",
+        "choiceId": "startup"
+      },
+      "createdAt": "2026-09-12T17:33:47.082Z"
+    },
+    {
+      "id": "1789234427084-pmc1moai",
+      "type": "reasoning",
+      "content": "The player prioritized career growth while considering financial risk and personal responsibilities.",
+      "source": "decision-ai",
+      "importance": "high",
+      "metadata": {},
+      "createdAt": "2026-09-12T17:33:47.084Z"
+    },
+    {
+      "id": "1789234912606-99rgvtw0",
+      "type": "value",
+      "content": "Family is important to the player.",
+      "source": "player",
+      "importance": "high",
+      "metadata": {},
+      "createdAt": "2026-09-12T17:41:52.606Z"
+    },
+    {
+      "id": "1789234912608-urztl9zs",
+      "type": "priority",
+      "content": "Career growth and financial independence.",
+      "source": "player",
+      "importance": "high",
+      "metadata": {},
+      "createdAt": "2026-09-12T17:41:52.609Z"
+    },
+    {
+      "id": "1789234912610-j5opzv9z",
+      "type": "decision",
+      "content": "The player chose the AI startup opportunity over the stable job.",
+      "source": "decision-ai",
+      "importance": "high",
+      "metadata": {
+        "scenario": "The Startup Opportunity",
+        "choiceId": "startup"
+      },
+      "createdAt": "2026-09-12T17:41:52.610Z"
+    },
+    {
+      "id": "1789234912611-o6xhgpc6",
+      "type": "reasoning",
+      "content": "The player prioritized career growth while considering financial risk and personal responsibilities.",
+      "source": "decision-ai",
+      "importance": "high",
+      "metadata": {},
+      "createdAt": "2026-09-12T17:41:52.611Z"
+    }
+  ]
+}
