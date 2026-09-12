@@ -94,7 +94,9 @@ function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <IntroPage onStart={() => setScreen(SCREENS.PROFILE)} />
+              <IntroPage
+                onStart={() => setScreen(SCREENS.PROFILE)}
+              />
             </motion.div>
           )}
 
@@ -124,6 +126,7 @@ function App() {
                 profile={playerProfile}
                 gameState={gameState}
                 scenario={currentScenario}
+                scenarioIndex={scenarioIndex}
                 selectedChoice={selectedChoice}
                 consequence={consequence}
                 onChoice={handleChoice}
