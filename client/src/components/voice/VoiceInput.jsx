@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function VoiceInput({ onTranscript, disabled = false }) {
+export default function VoiceInput({ onTranscript }) {
   const [status, setStatus] = useState("IDLE");
-  const [transcript, setTranscript] = useState("");
+  const [text, setText] = useState("");
   const [error, setError] = useState("");
 
   const recognitionRef = useRef(null);
@@ -17,6 +17,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     }
 
     const recognition = new SpeechRecognition();
+
     recognition.continuous = false;
     recognition.interimResults = true;
     recognition.lang = "en-IN";
@@ -27,34 +28,34 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
     };
 
     recognition.onresult = (event) => {
-      let finalText = "";
-      let interimText = "";
+      let result = "";
 
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const text = event.results[i][0].transcript;
-
-        if (event.results[i].isFinal) finalText += text;
-        else interimText += text;
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        result += event.results[i][0].transcript;
       }
 
-      const text = finalText || interimText;
-      setTranscript(text);
+      setText(result);
 
-      if (finalText.trim()) {
-        setStatus("READY");
-        onTranscript?.(finalText.trim());
-      } else {
-        setStatus("TRANSCRIBING");
+      if (event.results[event.results.length - 1].isFinal) {
+        const finalText = result.trim();
+
+        if (finalText) {
+          setStatus("READY");
+
+          if (onTranscript) {
+            onTranscript(finalText);
+          }
+        }
       }
     };
 
     recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+
       setStatus("IDLE");
 
-      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        setError("Microphone access denied. You can type instead.");
-      } else if (event.error === "no-speech") {
-        setError("No speech detected. Try again or type instead.");
+      if (event.error === "not-allowed" || event.error === "permission-denied") {
+        setError("Microphone permission denied. You can type instead.");
       } else {
         setError("Voice unavailable. You can type instead.");
       }
@@ -62,7 +63,7 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
 
     recognition.onend = () => {
       setStatus((current) =>
-        current === "LISTENING" || current === "TRANSCRIBING" ? "READY" : current
+        current === "LISTENING" ? "READY" : current
       );
     };
 
@@ -74,17 +75,21 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   }, [onTranscript]);
 
   const startListening = () => {
-    if (disabled || !recognitionRef.current) return;
-
-    setTranscript("");
     setError("");
-    setStatus("LISTENING");
+    setText("");
+
+    if (!recognitionRef.current) {
+      setError("Voice unavailable. You can type instead.");
+      return;
+    }
 
     try {
+      setStatus("LISTENING");
       recognitionRef.current.start();
-    } catch {
+    } catch (err) {
+      console.error(err);
+      setError("Voice unavailable. You can type instead.");
       setStatus("IDLE");
-      setError("Voice is already active. Try again or type instead.");
     }
   };
 
@@ -94,113 +99,121 @@ export default function VoiceInput({ onTranscript, disabled = false }) {
   };
 
   const submitText = () => {
-    const value = transcript.trim();
+    const value = text.trim();
+
     if (!value) {
-      setError("Please speak or type an answer first.");
+      setError("Please speak or type your answer.");
       return;
     }
 
     setError("");
-    setStatus("PROCESSING");
-    onTranscript?.(value);
-    setTimeout(() => setStatus("READY"), 0);
-  };
+    setStatus("READY");
 
-  const statusText = {
-    IDLE: "Ready",
-    LISTENING: "Listening… Speak now",
-    TRANSCRIBING: "Transcribing…",
-    PROCESSING: "Processing…",
-    READY: "Ready",
-  }[status];
+    if (onTranscript) {
+      onTranscript(value);
+    }
+  };
 
   return (
     <div
       style={{
         width: "100%",
-        maxWidth: 620,
-        margin: "0 auto",
-        padding: 24,
-        borderRadius: 20,
-        border: "1px solid rgba(255,255,255,.12)",
-        background: "rgba(255,255,255,.05)",
+        maxWidth: "620px",
+        margin: "30px auto",
+        padding: "24px",
+        borderRadius: "18px",
+        background: "#f5f7fb",
         boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
         <strong>Voice Input</strong>
-        <span>{statusText}</span>
+
+        <span>
+          {status === "LISTENING" ? "🎙️ Listening..." : status}
+        </span>
       </div>
 
       <button
         type="button"
         onClick={status === "LISTENING" ? stopListening : startListening}
-        disabled={disabled || !recognitionRef.current}
-        aria-label={status === "LISTENING" ? "Stop listening" : "Start listening"}
         style={{
           display: "block",
-          margin: "24px auto 16px",
-          width: 120,
-          height: 120,
+          margin: "0 auto 20px",
+          width: "120px",
+          height: "120px",
           borderRadius: "50%",
           border: "none",
-          cursor: disabled ? "not-allowed" : "pointer",
-          fontSize: 18,
-          background: status === "LISTENING" ? "#ef4444" : "#2563eb",
-          color: "#fff",
-          boxShadow: status === "LISTENING" ? "0 0 0 12px rgba(239,68,68,.15)" : "none",
+          cursor: "pointer",
+          background: status === "LISTENING" ? "#dc2626" : "#2563eb",
+          color: "white",
+          fontSize: "18px",
+          fontWeight: "bold",
         }}
       >
-        {status === "LISTENING" ? "🎙 Stop" : "🎤 Speak"}
+        {status === "LISTENING" ? "🛑 Stop" : "🎤 Speak"}
       </button>
 
       {status === "LISTENING" && (
-        <div style={{ textAlign: "center", marginBottom: 14 }} aria-live="polite">
-          🔊 🔊 🔊 &nbsp; Listening
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "15px",
+          }}
+        >
+          🔊 Listening — speak now...
         </div>
       )}
 
       <textarea
-        value={transcript}
-        onChange={(event) => {
-          setTranscript(event.target.value);
-          setError("");
-        }}
-        placeholder="Speak or type your answer…"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Speak or type your answer..."
         rows={4}
-        aria-label="Voice transcript or text answer"
         style={{
           width: "100%",
+          padding: "15px",
+          borderRadius: "12px",
+          border: "1px solid #ccc",
           boxSizing: "border-box",
           resize: "vertical",
-          padding: 14,
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,.15)",
-          background: "rgba(0,0,0,.2)",
-          color: "inherit",
-          fontSize: 16,
+          fontSize: "16px",
         }}
       />
 
       <button
         type="button"
         onClick={submitText}
-        disabled={!transcript.trim() || disabled}
         style={{
-          width: "100%",
-          marginTop: 10,
-          padding: "12px 16px",
-          borderRadius: 10,
+          display: "block",
+          margin: "15px auto 0",
+          padding: "10px 22px",
+          borderRadius: "10px",
           border: "none",
+          background: "#111827",
+          color: "white",
           cursor: "pointer",
-          fontWeight: 700,
         }}
       >
         Submit Answer
       </button>
 
       {error && (
-        <p role="alert" style={{ marginTop: 14 }}>
+        <p
+          role="alert"
+          style={{
+            color: "#dc2626",
+            textAlign: "center",
+            marginTop: "15px",
+          }}
+        >
           {error}
         </p>
       )}
