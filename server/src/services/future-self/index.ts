@@ -24,3 +24,12 @@ export {
   FUTURE_SELF_REASONING_INSTRUCTIONS,
   buildFutureSelfReasoningPrompt,
 } from "./futureSelfPrompt";
+
+export {
+  FutureSelfChatService,
+} from "./futureSelfChatService";
+
+export type {
+  FutureSelfChatReasoner,
+  FutureSelfChatSource,
+} from "./futureSelfChatService";
